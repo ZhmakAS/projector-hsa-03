@@ -3,6 +3,7 @@ module projector-test-app
 go 1.21
 
 require (
+	github.com/brianvoe/gofakeit/v6 v6.24.0
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/elastic/go-elasticsearch/v7 v7.17.10
 	github.com/go-chi/chi/v5 v5.0.10

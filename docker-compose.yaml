@@ -13,12 +13,6 @@ services:
       - influxdb
     ports:
       - '127.0.0.1:8125:8125/udp'
-    networks:
-      - telegraf-influx
-      - telegraf-mongo
-      - telegraf-nginx
-      - telegraf-elastic
-      - go-telegraf
 
   influxdb:
     image: influxdb:1.8-alpine
@@ -28,11 +22,6 @@ services:
     volumes:
       - ./:/imports
       - influxdb_data:/var/lib/influxdb
-    networks:
-      - world
-      - telegraf-influx
-      - grafana-influx
-      - go-influx
 
   grafana:
     image: grafana/grafana:8.0.2
@@ -42,15 +31,11 @@ services:
     links:
       - influxdb
     ports:
-      - '127.0.0.1:3000:3000'
+      - '3000:3000'
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning/:/etc/grafana/provisioning/
       - ./grafana/dashboards/:/var/lib/grafana/dashboards/
-    networks:
-      - world
-      - grafana-influx
-
 
   proxy:
     image: nginx
@@ -63,10 +48,6 @@ services:
       - 8080:80
     depends_on:
       - go-server
-    networks:
-      - world
-      - proxy-go
-      - telegraf-nginx
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.5.0
@@ -80,11 +61,7 @@ services:
       timeout: 3s
       retries: 80
     ports:
-      - 9200:9200
-    networks:
-      - world
-      - go-elastic
-      - telegraf-elastic
+      - '9200:9200'
 
   mongo:
     image: mongo
@@ -96,11 +73,7 @@ services:
       retries: 3
       start_period: 5s
     ports:
-      - 27017:27017
-    networks:
-      - world
-      - go-mongo
-      - telegraf-mongo
+      - '27017:27017'
 
 
   go-server:
@@ -111,43 +84,17 @@ services:
       ADDRESS: "0.0.0.0:8081"
       MONGODB_URL: "mongodb://mongo:27017/"
       ELASTICSEARCH_URL: "http://elasticsearch:9200"
+      INFLUX_URL: "influxdb:8086"
+      INFLUX_DB: "influx"
+      INFLUX_DB_USERNAME: "admin"
+      INFLUX_DB_PASSWORD: "admin"
     depends_on:
       elasticsearch:
         condition: service_healthy
       mongo:
         condition: service_healthy
-    networks:
-      - proxy-go
-      - go-mongo
-      - go-elastic
-      - go-telegraf
-      - go-influx
-
-
-networks:
-  world:
-  telegraf-influx:
-    internal: true
-  grafana-influx:
-    internal: true
-  proxy-go:
-    internal: true
-  go-mongo:
-    internal: true
-  telegraf-mongo:
-    internal: true
-  go-elastic:
-    internal: true
-  go-telegraf:
-    internal: true
-  go-influx:
-    internal: true
-  telegraf-elastic:
-    internal: true
-  telegraf-nginx:
-    internal: true
-
 
 volumes:
   grafana_data: { }
   influxdb_data: { }
+  mongo_data: { }

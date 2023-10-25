@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/brianvoe/gofakeit/v6"
 	metrics "github.com/tevjef/go-runtime-metrics"
 	_ "github.com/tevjef/go-runtime-metrics/expvar"
 
@@ -19,6 +20,9 @@ func main() {
 	if err := cfg.Parse(); err != nil {
 		panic(err)
 	}
+
+	faker := gofakeit.NewCrypto()
+	gofakeit.SetGlobalFaker(faker)
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -45,10 +49,10 @@ func main() {
 
 	// running metrics collector for server
 	err = metrics.RunCollector(&metrics.Config{
-		Host:     "influxdb:8086",
-		Database: "influx",
-		Username: "admin",
-		Password: "admin",
+		Host:     cfg.InfluxURL,
+		Database: cfg.InfluxDB,
+		Username: cfg.InfluxDBUsername,
+		Password: cfg.InfluxDBPassword,
 	})
 	if err != nil {
 		panic(err)
